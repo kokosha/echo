@@ -1,0 +1,52 @@
+{
+  "name": "echo",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "tauri": "tauri",
+    "prettier:check": "prettier --check \"src/**/*.{js,jsx,ts,tsx,json}\" \"*.{js,jsx,ts,tsx,json}\"",
+    "prettier:write": "prettier --write \"src/**/*.{js,jsx,ts,tsx,json}\" \"*.{js,jsx,ts,tsx,json}\""
+  },
+  "dependencies": {
+    "@tailwindcss/typography": "^0.5.16",
+    "@tauri-apps/api": "^2",
+    "@tauri-apps/plugin-opener": "^2",
+    "immer": "^10.1.1",
+    "katex": "^0.16.22",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-markdown": "^10.1.0",
+    "react-syntax-highlighter": "^15.6.1",
+    "rehype-katex": "^7.0.1",
+    "remark-breaks": "^4.0.0",
+    "remark-gfm": "^4.0.1",
+    "remark-math": "^6.0.0",
+    "remark-parse": "^11.0.0",
+    "remark-stringify": "^11.0.0",
+    "unified": "^11.0.5",
+    "zustand": "^5.0.5"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2",
+    "@types/react": "^18.3.1",
+    "@types/react-dom": "^18.3.1",
+    "@types/react-syntax-highlighter": "^15.5.13",
+    "@vitejs/plugin-react": "^4.3.4",
+    "autoprefixer": "^10.4.16",
+    "postcss": "^8.4.31",
+    "prettier": "^3.5.3",
+    "prettier-plugin-tailwindcss": "^0.6.12",
+    "tailwindcss": "^3.4.3",
+    "typescript": "~5.6.2",
+    "vite": "^6.0.3"
+  },
+  "overrides": {
+    "react-syntax-highlighter": {
+      "prismjs": "1.30.0"
+    }
+  }
+}
