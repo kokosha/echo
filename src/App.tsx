@@ -19,8 +19,8 @@ function App() {
 
   // Pull state and actions from stores
   const {
-    //isKeysLoading: isKeysLoading,
-    //error: keyFetchError,
+    isKeysLoading: isKeysLoading,
+    error: keyFetchError,
     loadKeys,
   } = useSettingsStore();
   const { error: chatError, setError: setChatError } = useChatStore();
@@ -63,7 +63,7 @@ function App() {
   };
 
   // Render a loading screen while keys are being fetched
-/*  if (isKeysLoading) {
+  if (isKeysLoading) {
     return (
       <div className="flex h-screen items-center justify-center bg-gray-900 text-gray-200">
         Loading API keys...
@@ -83,7 +83,7 @@ function App() {
         </p>
       </div>
     );
-  }*/
+  }
 
   // Main application UI
   return (

@@ -1,6 +1,6 @@
-use serde::{Deserialize, Serialize};
 use dotenv::dotenv;
- use std::io::BufRead;
+use serde::{Deserialize, Serialize};
+use std::io::BufRead;
 
 #[derive(Deserialize, Serialize)]
 pub struct LlMResponse {
@@ -15,9 +15,9 @@ pub struct Message {
     pub content: String,
 }
 
+pub(crate) mod chatgpt;
 pub(crate) mod claude;
 pub(crate) mod gemini;
-pub(crate) mod chatgpt;
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Tokens {
@@ -37,7 +37,9 @@ pub(crate) async fn save_tokens(api_keys_json: Tokens) -> Result<String, String>
         .lines()
         .filter_map(|line| {
             // Skip empty lines
-            if line.trim().is_empty() { return None; } 
+            if line.trim().is_empty() {
+                return None;
+            }
             let mut parts = line.splitn(2, '=');
             if let (Some(k), Some(v)) = (parts.next(), parts.next()) {
                 Some((k.trim().to_uppercase(), v.trim().to_string()))
@@ -87,15 +89,13 @@ pub(crate) async fn get_tokens() -> Tokens {
 
 #[tauri::command]
 pub(crate) async fn clear_tokens() -> Result<String, String> {
-
     let env_path = std::path::Path::new(".env");
     if !env_path.exists() {
         return Ok("No .env file, nothing to clear.".into());
     }
 
     // Read all lines, filtering out any of our three keys
-    let f = std::fs::File::open(&env_path)
-        .map_err(|e| format!("Failed to open .env: {}", e))?;
+    let f = std::fs::File::open(&env_path).map_err(|e| format!("Failed to open .env: {}", e))?;
     let reader = std::io::BufReader::new(f);
 
     let mut kept_lines = Vec::new();

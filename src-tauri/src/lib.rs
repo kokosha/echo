@@ -11,10 +11,9 @@ pub fn run() {
 
             // The 'setup' hook is synchronous, so we use 'block_on' from Tauri
             // async runtime to execute the async database setup and wait for it to finish.
-            let db_pool = tauri::async_runtime::block_on(async move {
-                chat::db_setup(&handle).await
-            })
-            .expect("Failed to setup database");
+            let db_pool =
+                tauri::async_runtime::block_on(async move { chat::db_setup(&handle).await })
+                    .expect("Failed to setup database");
 
             // Add the database pool to Tauri managed state here, inside the setup hook.
             app.manage(db_pool);
