@@ -1,17 +1,17 @@
+use crate::model::{LlMResponse, Message};
 use reqwest::Client;
 use serde_json::json;
-use crate::model::{Message, LlMResponse};
 
 // Define available Claude models
 const AVAILABLE_MODELS: [&str; 8] = [
     "claude-opus-4-20250514",
-    "claude-sonnet-4-20250514", 
+    "claude-sonnet-4-20250514",
     "claude-3-7-sonnet-20250219",
     "claude-3-5-sonnet-20241022",
     "claude-3-5-haiku-20241022",
     "claude-3-5-sonnet-20240620",
     "claude-3-haiku-20240307",
-    "claude-3-opus-20240229"
+    "claude-3-opus-20240229",
 ];
 
 /// Validates the input for the Claude API call.
@@ -25,10 +25,13 @@ fn is_valid_input(api_key: &str, messages: &Vec<Message>) -> Result<(), String> 
     Ok(())
 }
 
-
 // Tauri command to call the Claude API
 #[tauri::command]
-pub(crate) async fn call_claude_api(api_key: String, messages: Vec<Message>, model: Option<String>) -> Result<LlMResponse, String> {
+pub(crate) async fn call_claude_api(
+    api_key: String,
+    messages: Vec<Message>,
+    model: Option<String>,
+) -> Result<LlMResponse, String> {
     is_valid_input(&api_key, &messages)?;
 
     let client = Client::new();
@@ -46,7 +49,8 @@ pub(crate) async fn call_claude_api(api_key: String, messages: Vec<Message>, mod
         "messages": messages
     });
 
-    let res = client.post(url)
+    let res = client
+        .post(url)
         .header("x-api-key", api_key)
         .header("anthropic-version", "2023-06-01")
         .header("Content-Type", "application/json")
@@ -57,8 +61,12 @@ pub(crate) async fn call_claude_api(api_key: String, messages: Vec<Message>, mod
     match res {
         Ok(response) => {
             if response.status().is_success() {
-                let json_response: serde_json::Value = response.json().await.map_err(|e| e.to_string())?;
-                let content = json_response["content"][0]["text"].as_str().unwrap_or("No content").to_string();
+                let json_response: serde_json::Value =
+                    response.json().await.map_err(|e| e.to_string())?;
+                let content = json_response["content"][0]["text"]
+                    .as_str()
+                    .unwrap_or("No content")
+                    .to_string();
                 Ok(LlMResponse {
                     provider: "Claude".to_string(),
                     content,
@@ -66,10 +74,13 @@ pub(crate) async fn call_claude_api(api_key: String, messages: Vec<Message>, mod
                 })
             } else {
                 let status = response.status();
-                let text = response.text().await.unwrap_or_else(|_| "Failed to read response text".to_string());
+                let text = response
+                    .text()
+                    .await
+                    .unwrap_or_else(|_| "Failed to read response text".to_string());
                 Err(format!("Claude API Error ({}): {}", status, text))
             }
-        },
+        }
         Err(e) => Err(format!("Claude API Request Failed: {}", e)),
     }
 }

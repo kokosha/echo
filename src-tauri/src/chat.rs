@@ -1,5 +1,5 @@
 use serde::Serialize;
-use sqlx::{migrate::MigrateDatabase, sqlite::SqlitePoolOptions, Sqlite, SqlitePool};
+use sqlx::{Sqlite, SqlitePool, migrate::MigrateDatabase, sqlite::SqlitePoolOptions};
 use tauri::{Runtime, State};
 use uuid::Uuid;
 
@@ -52,11 +52,13 @@ pub(crate) async fn create_chat(
 
 #[tauri::command]
 pub(crate) async fn list_chats(db_pool: State<'_, SqlitePool>) -> Result<Vec<Chat>, String> {
-    let chats = sqlx::query_as::<_, Chat>("SELECT id, uuid, title, created_at FROM chats ORDER BY created_at DESC")
-        .fetch_all(&*db_pool)
-        .await
-        .map_err(|e| e.to_string())?;
-    
+    let chats = sqlx::query_as::<_, Chat>(
+        "SELECT id, uuid, title, created_at FROM chats ORDER BY created_at DESC",
+    )
+    .fetch_all(&*db_pool)
+    .await
+    .map_err(|e| e.to_string())?;
+
     Ok(chats)
 }
 
@@ -74,10 +76,7 @@ pub(crate) async fn delete_chat(
 }
 
 #[tauri::command]
-pub(crate) async fn clear_chat(
-    db_pool: State<'_, SqlitePool>,
-    chat_id: i64,
-) -> Result<(), String> {
+pub(crate) async fn clear_chat(db_pool: State<'_, SqlitePool>, chat_id: i64) -> Result<(), String> {
     sqlx::query("DELETE FROM messages WHERE chat_id = ?")
         .bind(chat_id)
         .execute(&*db_pool)
@@ -99,7 +98,7 @@ pub(crate) async fn create_message(
     let now = chrono::Utc::now().timestamp_millis();
     let result = sqlx::query(
         r#"INSERT INTO messages(uuid, chat_id, sender_id, provider, role, content, created_at)
-           VALUES (?, ?, ?, ?, ?, ?, ?)"#
+           VALUES (?, ?, ?, ?, ?, ?, ?)"#,
     )
     .bind(&message_uuid)
     .bind(chat_id)
@@ -130,7 +129,7 @@ pub(crate) async fn list_messages(
 ) -> Result<Vec<Message>, String> {
     let messages = sqlx::query_as::<_, Message>(
         r#"SELECT id, uuid, chat_id, sender_id, provider, role, content, created_at
-           FROM messages WHERE chat_id = ? ORDER BY created_at ASC"#
+           FROM messages WHERE chat_id = ? ORDER BY created_at ASC"#,
     )
     .bind(chat_id)
     .fetch_all(&*db_pool)
@@ -140,9 +139,11 @@ pub(crate) async fn list_messages(
     Ok(messages)
 }
 
-pub(crate) async fn db_setup<R: Runtime>(_app: &tauri::AppHandle<R>) -> Result<SqlitePool, Box<dyn std::error::Error>> {
+pub(crate) async fn db_setup<R: Runtime>(
+    _app: &tauri::AppHandle<R>,
+) -> Result<SqlitePool, Box<dyn std::error::Error>> {
     let db_url = "sqlite:database.db";
-    
+
     if !Sqlite::database_exists(db_url).await.unwrap_or(false) {
         Sqlite::create_database(db_url).await?;
     }
@@ -158,7 +159,7 @@ pub(crate) async fn db_setup<R: Runtime>(_app: &tauri::AppHandle<R>) -> Result<S
             uuid TEXT NOT NULL UNIQUE,
             title TEXT NOT NULL,
             created_at INTEGER NOT NULL
-        );"
+        );",
     )
     .execute(&db_pool)
     .await?;
@@ -174,7 +175,7 @@ pub(crate) async fn db_setup<R: Runtime>(_app: &tauri::AppHandle<R>) -> Result<S
             content TEXT NOT NULL,
             created_at INTEGER NOT NULL,
             FOREIGN KEY (chat_id) REFERENCES chats(id) ON DELETE CASCADE
-        );"
+        );",
     )
     .execute(&db_pool)
     .await?;
