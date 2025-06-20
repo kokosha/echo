@@ -1,9 +1,4 @@
-import {
-  useMemo,
-  memo,
-  useState,
-  useEffect,
-} from "react";
+import { useMemo, memo, useState, useEffect } from "react";
 import Markdown from "react-markdown";
 import { unified } from "unified";
 import remarkGfm from "remark-gfm";
@@ -15,7 +10,6 @@ import remarkStringify from "remark-stringify";
 import MemoizedCodeBlock from "./CodeBlock";
 import { ChatMessage, useChatStore } from "../stores/useChatStore";
 import { useShallow } from "zustand/react/shallow";
-
 
 // WARNING: This have a fixed memory, doesn't remove or will render infinitely.
 const EMPTY_MESSAGES: ChatMessage[] = [];
@@ -57,14 +51,14 @@ function useNormalizedMarkdown(rawContent: string): string {
 export const UserMessageBody = memo(({ content }: { content: string }) => (
   <p className="whitespace-pre-wrap break-words">{content}</p>
 ));
-UserMessageBody.displayName = "UserMessageBody"
+UserMessageBody.displayName = "UserMessageBody";
 
 const REMARK_PLUGINS = [remarkGfm, remarkBreaks, remarkMath];
-const REHYPE_PLUGINS = [rehypeKatex] 
-const MD_COMPONENTS = { code: MemoizedCodeBlock }
-export const AssistantMessageBody = memo<{content:string}>(
+const REHYPE_PLUGINS = [rehypeKatex];
+const MD_COMPONENTS = { code: MemoizedCodeBlock };
+export const AssistantMessageBody = memo<{ content: string }>(
   function AssistantMessageBody({ content }) {
-    const normalized = useNormalizedMarkdown(content)
+    const normalized = useNormalizedMarkdown(content);
     return (
       <Markdown
         remarkPlugins={REMARK_PLUGINS}
@@ -73,10 +67,10 @@ export const AssistantMessageBody = memo<{content:string}>(
       >
         {normalized}
       </Markdown>
-    )
-  }
-)
-AssistantMessageBody.displayName = "AssistantMessageBody"
+    );
+  },
+);
+AssistantMessageBody.displayName = "AssistantMessageBody";
 
 interface MessageItemProps {
   message: ChatMessage;
@@ -112,7 +106,7 @@ export const MemoizedMessageItem = memo(({ message }: MessageItemProps) => {
     </li>
   );
 });
-MemoizedMessageItem.displayName = "MemoizedMessageItem"
+MemoizedMessageItem.displayName = "MemoizedMessageItem";
 
 function ChatDisplay() {
   const { messages, isChatLoading } = useChatStore(

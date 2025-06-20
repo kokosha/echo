@@ -1,6 +1,6 @@
+use crate::model::{LlMResponse, Message};
 use reqwest::Client;
 use serde_json::json;
-use crate::model::{Message, LlMResponse};
 
 // Define available ChatGPT models
 pub const AVAILABLE_MODELS: [&str; 13] = [
@@ -8,12 +8,10 @@ pub const AVAILABLE_MODELS: [&str; 13] = [
     "chatgpt-4o-latest",
     "gpt-4.1",
     "gpt-4o",
-
     // Cost-optimized models
     "gpt-4o-mini",
     "gpt-4.1-mini",
     "gpt-4.1-nano",
-
     // Reasoning models (o1, o3, o4 series)
     "o4-mini",
     "o3",
@@ -26,7 +24,11 @@ pub const AVAILABLE_MODELS: [&str; 13] = [
 
 /// Determines if the provided model uses `max_completion_tokens` instead of `max_tokens`.
 fn uses_max_completion_tokens(model: &str) -> bool {
-    model.chars().next().unwrap_or_default().eq_ignore_ascii_case(&'o')
+    model
+        .chars()
+        .next()
+        .unwrap_or_default()
+        .eq_ignore_ascii_case(&'o')
 }
 
 fn is_valid_input(api_key: &String, messages: &Vec<Message>) -> Result<(), String> {
@@ -39,7 +41,10 @@ fn is_valid_input(api_key: &String, messages: &Vec<Message>) -> Result<(), Strin
     }
     for message in messages {
         if message.content.trim().is_empty() {
-            return Err(format!("Message content for role '{}' cannot be empty.", message.role));
+            return Err(format!(
+                "Message content for role '{}' cannot be empty.",
+                message.role
+            ));
         }
     }
     Ok(())
@@ -47,7 +52,11 @@ fn is_valid_input(api_key: &String, messages: &Vec<Message>) -> Result<(), Strin
 
 // Tauri command to call the ChatGPT API
 #[tauri::command]
-pub(crate) async fn call_chatgpt_api(api_key: String, messages: Vec<Message>, model: Option<String>) -> Result<LlMResponse, String> {
+pub(crate) async fn call_chatgpt_api(
+    api_key: String,
+    messages: Vec<Message>,
+    model: Option<String>,
+) -> Result<LlMResponse, String> {
     is_valid_input(&api_key, &messages)?;
 
     let client = Client::new();
@@ -71,7 +80,8 @@ pub(crate) async fn call_chatgpt_api(api_key: String, messages: Vec<Message>, mo
         request_body["max_tokens"] = json!(max_tokens);
     }
 
-    let response = client.post(url)
+    let response = client
+        .post(url)
         .bearer_auth(api_key.trim())
         .header("Content-Type", "application/json")
         .json(&request_body)
@@ -81,9 +91,13 @@ pub(crate) async fn call_chatgpt_api(api_key: String, messages: Vec<Message>, mo
     match response {
         Ok(response) => {
             if response.status().is_success() {
-                let json_response: serde_json::Value = response.json().await.map_err(|e| e.to_string())?;
+                let json_response: serde_json::Value =
+                    response.json().await.map_err(|e| e.to_string())?;
                 // Parse ChatGPT response structure
-                let content = json_response["choices"][0]["message"]["content"].as_str().unwrap_or("No content").to_string();
+                let content = json_response["choices"][0]["message"]["content"]
+                    .as_str()
+                    .unwrap_or("No content")
+                    .to_string();
                 Ok(LlMResponse {
                     provider: "ChatGPT".to_string(),
                     content,
@@ -91,10 +105,13 @@ pub(crate) async fn call_chatgpt_api(api_key: String, messages: Vec<Message>, mo
                 })
             } else {
                 let status = response.status();
-                let text = response.text().await.unwrap_or_else(|_| "Failed to read response text".to_string());
+                let text = response
+                    .text()
+                    .await
+                    .unwrap_or_else(|_| "Failed to read response text".to_string());
                 Err(format!("ChatGPT API Error ({}): {}", status, text))
             }
-        },
+        }
         Err(error) => Err(format!("ChatGPT API Request Failed: {}", error)),
     }
 }

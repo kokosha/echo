@@ -12,7 +12,7 @@ Ensure you have the following installed:
 
 - **Node.js** (LTS recommended)
 - **Rust** (Install via [rustup.rs](https://rustup.rs/))
-- **Tauri Prerequisites:** Depending on your operating system, you might need additional build tools. Please refer to the official Tauri documentation for detailed prerequisites: [Tauri Prerequisites Guide](https://tauri.app/v1/guides/getting-started/prerequisites/) (e.g., C++ build tools on Windows, `webkit2gtk` on Linux, Xcode on macOS).
+- **Tauri Prerequisites:** Depending on your operating system, you might need additional build tools. Please refer to the official Tauri documentation for detailed prerequisites: [Tauri Prerequisites Guide](https://v2.tauri.app/start/prerequisites/) (e.g., C++ build tools on Windows, `webkit2gtk` on Linux, Xcode on macOS).
 
 ### Development
 
@@ -43,7 +43,7 @@ To create a distributable installer or application bundle for your operating sys
     ```bash
     npm run tauri build
     ```
-    This command will compile the Rust backend, build your React frontend, and then package the application into an installer (e.g., `.msi` on Windows, `.dmg` on macOS, `.deb` / `.AppImage` on Linux) in the `src-tauri/target/release/bundle` directory. The specific output format depends on your operating system and Tauri configuration.
+    This command will compile the Rust backend, build your React frontend, and then package the application into an installer (e.g., `.msi` or `.exe` on Windows, `.dmg` on macOS, `.deb` / `.AppImage` on Linux) in the `src-tauri/target/release/bundle` directory. The specific output format depends on your operating system and Tauri configuration.
 
 ## License
 

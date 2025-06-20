@@ -7,10 +7,10 @@ export interface ChatInputProps {
 }
 
 export default function ChatInput({ isSidebarOpen }: ChatInputProps) {
-  const { prompt, setPrompt, sendMessage, chatLoading, selectedChatId} = useChatStore();
-  const isChatLoading = selectedChatId != null
-        ? !!chatLoading[selectedChatId]
-        : false
+  const { prompt, setPrompt, sendMessage, chatLoading, selectedChatId } =
+    useChatStore();
+  const isChatLoading =
+    selectedChatId != null ? !!chatLoading[selectedChatId] : false;
 
   // Chat Input Box autoexpanding.
   const lineCount = prompt.split("\n").length;

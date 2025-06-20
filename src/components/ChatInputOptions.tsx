@@ -8,11 +8,10 @@ export default function ChatInputOptions() {
     setSelectedModel,
     clearChat,
     selectedChatId,
-    chatLoading
+    chatLoading,
   } = useChatStore();
-  const isChatLoading = selectedChatId != null
-        ? !!chatLoading[selectedChatId]
-        : false
+  const isChatLoading =
+    selectedChatId != null ? !!chatLoading[selectedChatId] : false;
   type ApiKey = "claude" | "gemini" | "chatgpt";
   type ModelOption = [string, string];
   const models: Record<ApiKey, ModelOption[]> = {
