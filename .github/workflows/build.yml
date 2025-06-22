@@ -5,6 +5,9 @@ on:
   pull_request:
     branches:
       - main
+    # Opened, Synchronize, Reopened is the default ones that trigger when pull request.
+    # Ready for review is trigger when changing from draft to review.
+    types: [opened, synchronize, reopened, ready_for_review]
 
 env:
   FRONT_BUILD: npm run build
@@ -14,6 +17,8 @@ jobs:
   build:
     name: Build (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
+    # Check if the pull request is in draft, before building
+    if: github.event_name == 'push' || (github.event_name == 'pull_request' && !github.event.pull_request.draft)
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
