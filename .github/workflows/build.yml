@@ -1,0 +1,161 @@
+name: Echo CI/CD
+
+on:
+  push:
+  pull_request:
+    branches:
+      - main
+
+env:
+  FRONT_BUILD: npm run build
+  TAURI_BUILD: npm run tauri -- build
+
+jobs:
+  build:
+    name: Build (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+
+    steps:
+      # Remove CLRF
+      - name: Prepare the format to LF
+        run: |-
+          git config --global core.autocrlf false
+          git config --global core.eol lf
+
+      # Get the code
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Install and setup Node.js
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      # Install and setup Rust Toolchain
+      - name: Setup Rust Toolchain
+        uses: dtolnay/rust-toolchain@v1
+        with:
+          toolchain: stable
+          components: rustfmt
+
+      # Install extra dependencies from Ubuntu
+      - name: Install dependencies (Ubuntu only)
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo apt-get update
+          sudo apt install libwebkit2gtk-4.1-dev \
+            build-essential \
+            curl \
+            wget \
+            file \
+            libxdo-dev \
+            libssl-dev \
+            libayatana-appindicator3-dev \
+            librsvg2-dev
+
+      # Cache Node.js modules
+      - name: Cache node_modules
+        uses: actions/cache@v4
+        with:
+          path: |
+            **/node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+
+      # Cache Rust cargo registry
+      - name: Cache cargo registry
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+          key: ${{ runner.os }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}
+
+      # Install frontend dependencies directly from package-lock.json
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check formatting in Typescript
+        run: npm run prettier:check
+
+      - name: Check formatting in Rust
+        run: |
+          pushd src-tauri
+          cargo fmt --all -- --check
+          popd
+
+      # Build frontend
+      - name: Build frontend
+        run: ${{ env.FRONT_BUILD }}
+
+      # Build the Tauri bundles
+      - name: Build Tauri app
+        run: ${{ env.TAURI_BUILD }}
+
+      # Upload exactly the files each OS produced:
+      - name: Upload Linux AppImage
+        if: matrix.os == 'ubuntu-latest'
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux
+          path: src-tauri/target/release/bundle/appimage/*.AppImage
+
+      - name: Upload macOS DMG
+        if: matrix.os == 'macos-latest'
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos
+          path: src-tauri/target/release/bundle/dmg/*.dmg
+
+      - name: Upload Windows installers
+        if: matrix.os == 'windows-latest'
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows
+          path: |
+            src-tauri/target/release/bundle/msi/*.msi
+            src-tauri/target/release/bundle/nsis/*.exe
+
+  release:
+    name: Create GitHub Release
+    runs-on: ubuntu-latest
+    needs: build
+    # Only run on Github Tags (vX.Y.Z)
+    if: startsWith(github.ref, 'refs/tags/')
+    permissions:
+      contents: write
+
+    steps:
+      - name: Download Linux build
+        uses: actions/download-artifact@v4
+        with:
+          name: linux
+          path: bundles/linux
+
+      - name: Download macOS build
+        uses: actions/download-artifact@v4
+        with:
+          name: macos
+          path: bundles/macos
+
+      - name: Download Windows build
+        uses: actions/download-artifact@v4
+        with:
+          name: windows
+          path: bundles/windows
+
+      # Publish to GitHub Releases
+      - name: Create GitHub Release & Upload Assets
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          files: |
+            bundles/linux/*.AppImage
+            bundles/macos/*.dmg
+            bundles/windows/nsis/*.exe
+            bundles/windows/msi/*.msi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
